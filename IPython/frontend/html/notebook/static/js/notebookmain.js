@@ -33,6 +33,7 @@ $(document).ready(function () {
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.left_panel = new IPython.LeftPanel('div#left_panel', 'div#left_panel_splitter');
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
+    IPython.publish_widget = new IPython.PublishWidget('span#publish_widget');
     IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
     IPython.print_widget = new IPython.PrintWidget('span#print_widget');

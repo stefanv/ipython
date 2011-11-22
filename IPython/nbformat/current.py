@@ -213,6 +213,23 @@ def write(nb, fp, format, **kwargs):
     """
     return fp.write(writes(nb, format, **kwargs))
 
+
+def remove_output(nb):
+    """Remove output cells from a notebook.
+
+    The notebook is modified in-place.
+
+    Parameters
+    ----------
+    nb : NotebookNode
+        Notebook to clean.
+
+    """
+    for w in nb.worksheets:
+        for c in w.cells:
+            c.outputs = []
+
+
 def _convert_to_metadata():
     """Convert to a notebook having notebook metadata."""
     import glob

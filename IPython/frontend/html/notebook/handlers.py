@@ -19,9 +19,14 @@ Authors:
 import logging
 import Cookie
 import uuid
+import json
+import ConfigParser
+import StringIO
+import os
 
 from tornado import web
 from tornado import websocket
+from tornado import httpclient
 
 from zmq.eventloop import ioloop
 from zmq.utils import jsonapi
@@ -577,3 +582,114 @@ class RSTHandler(AuthenticatedHandler):
         self.finish(html)
 
 
+
+#-----------------------------------------------------------------------------
+# Publish handler
+#-----------------------------------------------------------------------------
+
+class GitConfigError(Exception):
+    pass
+
+def parse_gitconfig():
+    """Read github username and token from local git configuration.
+
+    Returns
+    -------
+    user, token : str
+        Username, password.
+
+    Raises
+    ------
+    e : GitConfigError
+        If anything goes wrong.
+
+    """
+    try:
+        git_conf = open(os.path.expanduser('~/.gitconfig'), 'r')
+    except (IOError, OSError):
+        raise GitConfigError("Could not open gitconfig.")
+
+    s = StringIO.StringIO()
+    cp = ConfigParser.ConfigParser()
+    try:
+        for l in git_conf.readlines():
+            s.write(l.lstrip())
+        s.seek(0)
+
+        cp.readfp(s)
+    except ConfigParser.ParsingError:
+        raise GitConfigError("Could not parse gitconfig.")
+
+    try:
+        user = cp.get('github', 'user').strip()
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        raise GitConfigError("Could not find github username in gitconfig.")
+
+    try:
+        token = cp.get('github', 'token').strip()
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        raise GitConfigError("Could not find github token in gitconfig.")
+
+    return user, token
+
+class PublishHandler(AuthenticatedHandler):
+
+    @web.authenticated
+    @web.asynchronous
+    def post(self, notebook_id):
+        nbm = self.application.notebook_manager
+        format = self.get_argument('format', default='json')
+        name = self.get_argument('name', default=None)
+        nb = nbm.publish_notebook(notebook_id, self.request.body, name=name,
+                                  format=format)
+
+        try:
+            user, token = parse_gitconfig()
+        except GitConfigError:
+            self.write(json.dumps(
+                {'status': 'unauthorized',
+                 'message': 'Could not load git configuration'}))
+            self.finish()
+            return
+
+        name = name or 'default'
+
+        data = {
+            "description": name,
+            "public": True,
+            "files": {
+                "%s.ipynb" % name: {
+                    "content": nb,
+                }
+            }
+        }
+
+        req = httpclient.HTTPRequest(url="https://api.github.com/gists",
+                                     method="POST",
+                                     body=json.dumps(data),
+                                     auth_username="%s/token" % user,
+                                     auth_password=token)
+
+        http = httpclient.AsyncHTTPClient()
+        http.fetch(req, self._on_upload)
+
+    def _on_upload(self, response):
+        data = {'status': 'invalid'}
+
+        if response.code in (200, 400, 401, 422):
+            try:
+                result = json.loads(response.body)
+            except:
+                data['message'] = 'Invalid response from github'
+            else:
+                if response.code == 200:
+                    data['status'] = 'ok'
+                    data['url'] = result['url']
+                else:
+                    data['message'] = result.get('message',
+                                                 'No error description')
+        else:
+            data['message'] = 'GitHub returned %d' % response.code
+
+        self.write(json.dumps(data))
+        self.finish()

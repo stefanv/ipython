@@ -43,7 +43,8 @@ from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
-    ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler
+    ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler,
+    PublishHandler
 )
 from .notebookmanager import NotebookManager
 
@@ -97,6 +98,7 @@ class NotebookWebApplication(web.Application):
             (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
             (r"/notebooks", NotebookRootHandler),
             (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
+            (r"/publish/%s" % _notebook_id_regex, PublishHandler),
             (r"/rstservice/render", RSTHandler)
         ]
         settings = dict(

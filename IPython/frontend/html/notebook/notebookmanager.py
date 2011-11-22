@@ -231,3 +231,17 @@ class NotebookManager(LoggingConfigurable):
             current.write(nb, f, u'json')
         return notebook_id
 
+    def publish_notebook(self, notebook_id, data, name=None, format=u'json'):
+        """Prepare notebook for publication.
+
+        For now, simply strip out all output cells.
+
+        """
+        try:
+            nb = current.reads(data.decode('utf-8'), format)
+        except:
+            raise web.HTTPError(400, u'Invalid JSON data')
+
+        current.remove_output(nb)
+        return current.writes(nb, format)
+

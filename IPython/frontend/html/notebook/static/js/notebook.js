@@ -918,6 +918,38 @@ var IPython = (function (IPython) {
         return data
     };
 
+    Notebook.prototype.publish_notebook = function () {
+        var notebook_id = IPython.save_widget.get_notebook_id();
+        var nbname = IPython.save_widget.get_notebook_name();
+        var data = this.toJSON();
+        data.metadata.name = nbname;
+        data.nbformat = 2;
+        // We do the call with settings so we can set cache to false.
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "POST",
+            data : JSON.stringify(data),
+            headers : {'Content-Type': 'application/json'},
+            success : $.proxy(this.notebook_published, this),
+//            error : $.proxy(this.notebook_save_failed, this)
+        };
+        var url = $('body').data('baseProjectUrl') + 'publish/' + notebook_id
+        $.ajax(url, settings);
+    };
+
+    Notebook.prototype.notebook_published = function (data, status, xhr) {
+        this.dirty = true;
+//        IPython.publish_widget.notebook_saved();
+        data = JSON.parse(data);
+        if (data.status != 'ok') {
+            console.log('error message:', data.message);
+        } else {
+            console.log('gist url:', data.url);
+        }
+    }
+
+
     Notebook.prototype.save_notebook = function () {
         if (IPython.save_widget.test_notebook_name()) {
             var notebook_id = IPython.save_widget.get_notebook_id();
