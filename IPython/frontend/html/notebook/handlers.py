@@ -577,3 +577,24 @@ class RSTHandler(AuthenticatedHandler):
         self.finish(html)
 
 
+#-----------------------------------------------------------------------------
+# Client ping back handler
+#-----------------------------------------------------------------------------
+
+class PingHandler(RequestHandler):
+    """IPython clients call this method to let us know that they are
+    viewing a worksheet.
+
+    """
+
+    def post(self, notebook_id):
+        nbm = self.application.notebook_manager
+
+        body = self.request.body.strip()
+        ip = self.request.remote_ip
+        host = self.request.host
+        user = self.get_argument('user', default='Anon')
+        viewers = nbm.update_viewers(notebook_id, ip=ip, host=host, user=user,
+                                     read_only=self.application.read_only)
+
+        self.finish(jsonapi.dumps({'viewers': viewers}))

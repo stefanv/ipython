@@ -275,6 +275,35 @@ var IPython = (function (IPython) {
     };
 
 
+    // ViewerSection
+
+    var ViewerSection = function () {
+        PanelSection.apply(this, arguments);
+    };
+
+    ViewerSection.prototype = new PanelSection();
+
+
+    ViewerSection.prototype.style = function () {
+        PanelSection.prototype.style.apply(this);
+    };
+
+    ViewerSection.prototype.update_viewers = function (data) {
+        viewers = $.parseJSON(data).viewers;
+        new_list = $('<div id="viewer_list">');
+        ul = $('<ul>');
+
+        for (var i = 0; i < viewers.length; i += 1) {
+            info = viewers[i];
+            new_list.append(ul.text(info.user + ' on ' + info.ip +
+                                    ' (' + info.host + ')' +
+                                    ' seen ' + info.timestamp));
+        }
+
+        $('#viewer_list').replaceWith(new_list);
+    };
+
+
     // Set module variables
 
     IPython.PanelSection = PanelSection;
@@ -282,6 +311,7 @@ var IPython = (function (IPython) {
     IPython.CellSection = CellSection;
     IPython.KernelSection = KernelSection;
     IPython.HelpSection = HelpSection;
+    IPython.ViewerSection = ViewerSection;
 
     return IPython;
 

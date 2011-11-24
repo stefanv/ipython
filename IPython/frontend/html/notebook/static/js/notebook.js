@@ -1000,6 +1000,27 @@ var IPython = (function (IPython) {
         }, 50);
     };
 
+
+    Notebook.prototype.ping = function() {
+        /* Let the server know that this client is still watching */
+
+        var notebook_id = IPython.save_widget.get_notebook_id();
+
+        var data = {
+            type : "POST",
+            success : function (data, status, hdr) {
+                if (status === "success") {
+                    IPython.left_panel.viewer_section.update_viewers(data);
+                } else {
+                    console.log("Could not update viewers (status ", status, ")");
+                }
+            }
+        };
+        var url = $('body').data('baseProjectUrl') + 'ping/' + notebook_id;
+        $.ajax(url, data);
+    };
+
+
     IPython.Notebook = Notebook;
 
 

@@ -48,7 +48,8 @@ from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
-    ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler
+    ShellHandler, NotebookRootHandler, NotebookHandler, RSTHandler,
+    PingHandler
 )
 from .notebookmanager import NotebookManager
 
@@ -102,7 +103,8 @@ class NotebookWebApplication(web.Application):
             (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
             (r"/notebooks", NotebookRootHandler),
             (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
-            (r"/rstservice/render", RSTHandler)
+            (r"/rstservice/render", RSTHandler),
+            (r"/ping/%s" % _notebook_id_regex, PingHandler),
         ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),

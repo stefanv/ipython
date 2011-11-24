@@ -70,6 +70,7 @@ var IPython = (function (IPython) {
             this.kernel_section = new IPython.KernelSection('div#kernel_section');
         }
         this.help_section = new IPython.HelpSection('div#help_section');
+        this.viewer_section = new IPython.ViewerSection('div#viewer_section');
     }
 
     LeftPanel.prototype.collapse = function () {

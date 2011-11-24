@@ -52,6 +52,7 @@ $(document).ready(function () {
         $('button#new_notebook').addClass('hidden');
         $('div#cell_section').addClass('hidden');
         $('div#kernel_section').addClass('hidden');
+        $('div#viewer_Section').addClass('hidden');
         $('span#login_widget').removeClass('hidden');
         // left panel starts collapsed, but the collapse must happen after
         // elements start drawing.  Don't draw contents of the panel until
@@ -75,10 +76,12 @@ $(document).ready(function () {
                 // and finally unhide the panel contents after collapse
                 setTimeout(function(){
                     IPython.left_panel.left_panel_element.css('visibility', 'visible');
-                }, 200)
+                }, 200);
             }
         },100);
+
+        setInterval(IPython.notebook.ping, 30 * 1000);
+
     });
 
 });
-

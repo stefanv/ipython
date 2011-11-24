@@ -17,6 +17,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import datetime
+import time
 import os
 import uuid
 import glob
@@ -45,6 +46,8 @@ class NotebookManager(LoggingConfigurable):
     mapping = Dict()
     # Map notebook names to notebook_ids
     rev_mapping = Dict()
+
+    viewers = Dict()
 
     def list_notebooks(self):
         """List all notebooks in the notebook dir.
@@ -231,3 +234,38 @@ class NotebookManager(LoggingConfigurable):
             current.write(nb, f, u'json')
         return notebook_id
 
+    def update_viewers(self, notebook_id, ip=None, host=None, user=None,
+                       read_only=False):
+        """Update the list of current viewers/editors of a notebook.
+
+        """
+        if not notebook_id in self.mapping:
+            return []
+
+        if user is None:
+            user = 'Unknown'
+
+        if host is None:
+            host = ''
+        else:
+            host = host.split(':', 1)[0]
+
+        viewers_all = self.viewers
+        viewers_this = self.viewers.get(notebook_id, [])
+
+        viewer_info = {'user': user,
+                       'ip': ip,
+                       'host': host,
+                       'timestamp': time.strftime('%H:%M'),
+                       'read_only': read_only}
+
+        for n, info in enumerate(viewers_this):
+            if (user == info['user']) and (ip == info['ip']):
+                viewers_this[n] = viewer_info
+                break
+        else:
+            viewers_this.insert(0, viewer_info)
+
+        viewers_all[notebook_id] = viewers_this
+
+        return viewers_this
