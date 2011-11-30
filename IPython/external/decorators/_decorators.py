@@ -22,6 +22,8 @@ import warnings
 # Our version:
 from _numpy_testing_utils import WarningManager
 try:
+    from numpy.testing.noseclasses import KnownFailureTest
+except ImportError:
     from _numpy_testing_noseclasses import KnownFailureTest
 except:
     pass
